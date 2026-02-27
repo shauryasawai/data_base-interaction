@@ -1,0 +1,285 @@
+{% extends 'leads/base.html' %}
+{% load static %}
+
+{% block title %}AI Lead Results{% endblock %}
+
+{% block extra_css %}
+<style>
+    .results-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .interpretation-box {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .lead-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+    }
+    
+    .lead-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .confidence-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .confidence-high {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .confidence-medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .confidence-low {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .progress-bar-wrapper {
+        background: #e9ecef;
+        border-radius: 10px;
+        height: 8px;
+        overflow: hidden;
+        margin: 0.5rem 0;
+    }
+    
+    .progress-bar-fill {
+        height: 100%;
+        border-radius: 10px;
+        transition: width 0.5s ease;
+    }
+    
+    .strengths-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .strengths-list li {
+        padding: 0.5rem 0;
+        border-left: 3px solid #28a745;
+        padding-left: 1rem;
+        margin-bottom: 0.5rem;
+        background: #f8f9fa;
+    }
+    
+    .concerns-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .concerns-list li {
+        padding: 0.5rem 0;
+        border-left: 3px solid #ffc107;
+        padding-left: 1rem;
+        margin-bottom: 0.5rem;
+        background: #fff9e6;
+    }
+    
+    .reasoning-text {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 6px;
+        font-style: italic;
+        border-left: 4px solid #667eea;
+    }
+    
+    .badge-custom {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+    }
+    
+    .industry-alignment {
+        background: #e7f3ff;
+        border-left: 4px solid #2196F3;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 4px;
+    }
+    
+    .search-type-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        background: #667eea;
+        color: white;
+        border-radius: 20px;
+        margin-bottom: 1rem;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 3rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    
+    .lead-rank {
+        background: #667eea;
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="results-header">
+        <h2>🎯 AI Analysis Results</h2>
+        <p class="mb-0">Your search: <strong>"{{ user_prompt }}"</strong></p>
+    </div>
+    
+    <div class="interpretation-box">
+        <h4>🧠 AI Interpretation</h4>
+        <p><strong>{{ interpretation }}</strong></p>
+        
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <span class="search-type-badge">
+                    {% if search_type == 'supplier' %}
+                        📦 Looking for: Supplier/Vendor
+                    {% elif search_type == 'consumer' %}
+                        🛒 Looking for: Consumer/Client
+                    {% else %}
+                        🔍 General Search
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        
+        {% if industry_alignment %}
+        <div class="industry-alignment mt-3">
+            <strong>📊 Database Alignment:</strong> {{ industry_alignment }}
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if leads %}
+    <div class="mb-3">
+        <h4>Found {{ leads|length }} matching lead{{ leads|length|pluralize }}</h4>
+    </div>
+    
+    {% for lead in leads %}
+    <div class="lead-card">
+        <div class="row">
+            <div class="col-auto">
+                <div class="lead-rank">{{ forloop.counter }}</div>
+            </div>
+            <div class="col">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h4 class="mb-1">{{ lead.name }}</h4>
+                        <p class="text-muted mb-2">
+                            {% if lead.role %}<span class="badge-custom bg-primary">{{ lead.role }}</span>{% endif %}
+                            {% if lead.company %}<span class="badge-custom bg-secondary">{{ lead.company }}</span>{% endif %}
+                            {% if lead.location %}<span class="badge-custom bg-info">📍 {{ lead.location }}</span>{% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <span class="confidence-badge 
+                            {% if lead.ai_confidence_score >= 70 %}confidence-high
+                            {% elif lead.ai_confidence_score >= 50 %}confidence-medium
+                            {% else %}confidence-low{% endif %}">
+                            {{ lead.ai_confidence_score }}% Match
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="progress-bar-wrapper">
+                    <div class="progress-bar-fill" 
+                         style="width: {{ lead.ai_confidence_score }}%; 
+                                background: {% if lead.ai_confidence_score >= 70 %}#28a745
+                                         {% elif lead.ai_confidence_score >= 50 %}#ffc107
+                                         {% else %}#dc3545{% endif %};">
+                    </div>
+                </div>
+                <div class="reasoning-text mt-3">
+                    <strong>Why this match:</strong> {{ lead.ai_reasoning }}
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>✅ Strengths:</h6>
+                        <ul class="strengths-list">
+                            {% for strength in lead.ai_strengths %}
+                            <li>{{ strength }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    {% if lead.ai_concerns %}
+                    <div class="col-md-6">
+                        <h6>⚠️ Considerations:</h6>
+                        <ul class="concerns-list">
+                            {% for concern in lead.ai_concerns %}
+                            <li>{{ concern }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-3">
+                    <strong>Contact:</strong>
+                    {% if lead.email %}<span class="badge-custom bg-light text-dark">✉️ {{ lead.email }}</span>{% endif %}
+                    {% if lead.phone %}<span class="badge-custom bg-light text-dark">📞 {{ lead.phone }}</span>{% endif %}
+                    {% if lead.linkedin_url %}
+                    <a href="{{ lead.linkedin_url }}" target="_blank" class="badge-custom bg-primary text-white">
+                        🔗 LinkedIn
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-3">
+                    <a href="{% url 'lead_detail' lead.id %}" class="btn btn-sm btn-outline-primary">View Full Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    {% else %}
+    <div class="no-results">
+        <h3>😔 No matches found</h3>
+        <p>The AI couldn't find any leads matching your criteria with sufficient confidence.</p>
+        <p class="text-muted">Try refining your search or using broader terms.</p>
+        <a href="{% url 'ai_lead_generation' %}" class="btn btn-primary mt-3">Try Another Search</a>
+    </div>
+    {% endif %}
+    
+    <div class="mt-4 text-center">
+        <a href="{% url 'ai_lead_generation' %}" class="btn btn-secondary">🔙 New Search</a>
+        <a href="{% url 'home' %}" class="btn btn-outline-secondary">Home</a>
+    </div>
+</div>
+{% endblock %}

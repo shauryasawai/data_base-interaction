@@ -1,0 +1,676 @@
+{% extends 'leads/base.html' %}
+{% load static %}
+
+{% block title %}Home - Lead Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 60px 0;
+        position: relative;
+        overflow: hidden;
+        margin: -2rem 0 3rem 0;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        opacity: 0.4;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        color: white;
+        text-align: center;
+    }
+
+    .hero-content h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+    }
+
+    .hero-content p {
+        font-size: 1.15rem;
+        opacity: 0.95;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+
+    /* Stats Cards */
+    .stats-container {
+        margin-top: -40px;
+        margin-bottom: 3rem;
+        position: relative;
+        z-index: 10;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.75rem;
+    }
+
+    .stat-icon.primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .stat-icon.success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
+
+    .stat-icon.info {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
+
+    .stat-number {
+        font-size: 2.25rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    /* Action Cards */
+    .action-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .action-card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
+    }
+
+    .action-card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        font-weight: 700;
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .action-card-body {
+        padding: 1.75rem 1.5rem;
+    }
+
+    /* Info Box */
+    .info-box {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+        border-left: 4px solid #667eea;
+        border-radius: 10px;
+        padding: 1.25rem;
+        margin-top: 1.25rem;
+    }
+
+    .info-box h6 {
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+    }
+
+    .info-box ul {
+        margin: 0;
+        padding-left: 1.25rem;
+    }
+
+    .info-box li {
+        margin-bottom: 0.4rem;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .info-box .small {
+        font-size: 0.85rem;
+        color: #475569;
+    }
+
+    /* Tabs */
+    .nav-tabs {
+        border: none;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .nav-tabs .nav-link {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        color: #1e293b;
+        font-weight: 600;
+        padding: 0.65rem 1.25rem;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .nav-tabs .nav-link:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .nav-tabs .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+    }
+
+    /* Recent Leads Section */
+    .leads-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+    }
+
+    .leads-card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.25rem 1.5rem;
+        font-weight: 700;
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .lead-item {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .lead-item:last-child {
+        border-bottom: none;
+    }
+
+    .lead-item:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
+    }
+
+    .lead-name {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #1e293b;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .lead-name:hover {
+        color: #667eea;
+    }
+
+    .lead-info {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 0.5rem;
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+
+    .lead-info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .skill-badge {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+        color: #667eea;
+        padding: 0.35rem 0.85rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-right: 0.4rem;
+        margin-bottom: 0.4rem;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .skill-badge:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .match-badge {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.875rem;
+        display: inline-block;
+        box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .empty-state i {
+        font-size: 4.5rem;
+        color: #e2e8f0;
+        margin-bottom: 1.5rem;
+    }
+
+    .empty-state h3 {
+        color: #64748b;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .empty-state p {
+        color: #94a3b8;
+    }
+
+    /* Form Styling */
+    .form-label {
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 0.7rem 1rem;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        outline: none;
+    }
+
+    .form-text {
+        color: #64748b;
+        font-size: 0.825rem;
+        margin-top: 0.4rem;
+    }
+
+    /* Buttons */
+    .btn-action {
+        padding: 0.7rem 1.75rem;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .btn-action-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-action-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-action-outline {
+        background: transparent;
+        color: #667eea;
+        border: 2px solid #667eea;
+    }
+
+    .btn-action-outline:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-in {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-content h1 {
+            font-size: 2.25rem;
+        }
+        
+        .hero-content p {
+            font-size: 1rem;
+        }
+
+        .stats-container {
+            margin-top: 1.5rem;
+        }
+
+        .stat-card {
+            margin-bottom: 1rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="hero-content animate-in">
+            <h1><i class="bi bi-bullseye"></i> Lead Management System</h1>
+            <p>Upload, search, and match the perfect leads for your requirements with AI-powered precision</p>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Stats Cards -->
+    <div class="stats-container">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="stat-card animate-in">
+                    <div class="stat-icon primary">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <div class="stat-number">{{ total_leads|default:0 }}</div>
+                    <div class="stat-label">Total Leads</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card animate-in" style="animation-delay: 0.1s">
+                    <div class="stat-icon success">
+                        <i class="bi bi-cloud-upload-fill"></i>
+                    </div>
+                    <div class="stat-number">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <div class="stat-label">Ready to Upload</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card animate-in" style="animation-delay: 0.2s">
+                    <div class="stat-icon info">
+                        <i class="bi bi-stars"></i>
+                    </div>
+                    <div class="stat-number">
+                        <i class="bi bi-cpu-fill"></i>
+                    </div>
+                    <div class="stat-label">AI-Powered</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Upload Card -->
+        <div class="col-lg-6">
+            <div class="action-card animate-in" style="animation-delay: 0.3s">
+                <div class="action-card-header">
+                    <i class="bi bi-cloud-upload"></i>
+                    Upload Leads from Excel
+                </div>
+                <div class="action-card-body">
+                    <form method="post" action="{% url 'upload_leads' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="bi bi-file-earmark-spreadsheet"></i> 
+                                {{ upload_form.file.label }}
+                            </label>
+                            {{ upload_form.file }}
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> 
+                                {{ upload_form.file.help_text|default:"Upload an Excel file (.xlsx, .xls)" }}
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-action btn-action-primary w-100">
+                            <i class="bi bi-cloud-upload-fill"></i>
+                            Upload Excel File
+                        </button>
+                    </form>
+                    
+                    <div class="info-box">
+                        <h6><i class="bi bi-info-circle"></i> Expected Excel Columns</h6>
+                        <ul>
+                            <li><strong>Name</strong> (required)</li>
+                            <li>Role, Company, LinkedIn URL</li>
+                            <li>Location, Skills, Email, Phone</li>
+                            <li>Notes and other fields</li>
+                        </ul>
+                        <p class="small mb-0 mt-2">
+                            <strong>💡 Pro Tip:</strong> Your Excel format with S.No, Name, Role, Company, LinkedIn URL, and Location will work perfectly!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Card -->
+        <div class="col-lg-6">
+            <div class="action-card animate-in" style="animation-delay: 0.4s">
+                <div class="action-card-header">
+                    <i class="bi bi-search"></i>
+                    Find Best Matches
+                </div>
+                <div class="action-card-body">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#keyword-search" type="button">
+                                <i class="bi bi-search"></i> Keyword Search
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#ai-search" type="button">
+                                <i class="bi bi-stars"></i> AI Search
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        <!-- Keyword Search Tab -->
+                        <div class="tab-pane fade show active" id="keyword-search">
+                            <form method="post" action="{% url 'search_leads' %}">
+                                {% csrf_token %}
+                                <div class="mb-4">
+                                    <label class="form-label">
+                                        <i class="bi bi-tags"></i> 
+                                        {{ search_form.skills.label }}
+                                    </label>
+                                    {{ search_form.skills }}
+                                    <div class="form-text">
+                                        <i class="bi bi-lightbulb"></i> 
+                                        {{ search_form.skills.help_text|default:"Enter keywords separated by commas (e.g., Python, Django, React)" }}
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-action btn-action-primary w-100">
+                                    <i class="bi bi-search"></i>
+                                    Search Leads
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- AI Search Tab -->
+                        <div class="tab-pane fade" id="ai-search">
+                            <div class="text-center">
+                                <div class="mb-3">
+                                    <i class="bi bi-stars" style="font-size: 3rem; color: #667eea;"></i>
+                                </div>
+                                <h6 class="mb-3">AI-Powered Lead Generation</h6>
+                                <p class="text-muted mb-4">
+                                    Describe what you're looking for in natural language and let AI find the perfect matches.
+                                </p>
+                                <a href="{% url 'ai_lead_generation' %}" class="btn-action btn-action-primary">
+                                    <i class="bi bi-rocket-takeoff"></i>
+                                    Try AI Lead Generation
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Leads Section -->
+    <div class="leads-card animate-in" style="animation-delay: 0.5s">
+        <div class="leads-card-header">
+            <i class="bi bi-clock-history"></i>
+            Recent Leads ({{ leads|length }} of {{ total_leads|default:0 }})
+        </div>
+        <div>
+            {% if leads %}
+                {% for lead in leads %}
+                    <div class="lead-item">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-2">
+                                    <a href="{% url 'lead_detail' lead.pk %}" class="lead-name">
+                                        {{ lead.name }}
+                                    </a>
+                                </h5>
+                                <div class="lead-info">
+                                    <span class="lead-info-item">
+                                        <i class="bi bi-envelope-fill"></i>
+                                        {{ lead.email }}
+                                    </span>
+                                    {% if lead.role %}
+                                        <span class="lead-info-item">
+                                            <i class="bi bi-briefcase-fill"></i>
+                                            {{ lead.role }}
+                                        </span>
+                                    {% endif %}
+                                    {% if lead.company %}
+                                        <span class="lead-info-item">
+                                            <i class="bi bi-building"></i>
+                                            {{ lead.company }}
+                                        </span>
+                                    {% endif %}
+                                    {% if lead.location %}
+                                        <span class="lead-info-item">
+                                            <i class="bi bi-geo-alt-fill"></i>
+                                            {{ lead.location }}
+                                        </span>
+                                    {% endif %}
+                                    {% if lead.linkedin_url %}
+                                        <a href="{{ lead.linkedin_url }}" target="_blank" 
+                                           class="lead-info-item text-decoration-none" 
+                                           style="color: #0077b5;">
+                                            <i class="bi bi-linkedin"></i>
+                                            LinkedIn
+                                        </a>
+                                    {% endif %}
+                                </div>
+                                {% if lead.skills %}
+                                    <div class="mt-3">
+                                        {% for skill in lead.get_skills_list|slice:":5" %}
+                                            <span class="skill-badge">{{ skill }}</span>
+                                        {% endfor %}
+                                        {% if lead.get_skills_list|length > 5 %}
+                                            <span class="skill-badge">+{{ lead.get_skills_list|length|add:"-5" }} more</span>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% if lead.match_score > 0 %}
+                                <div>
+                                    <span class="match-badge">
+                                        <i class="bi bi-star-fill"></i> {{ lead.match_score }}% Match
+                                    </span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-inbox"></i>
+                    <h3>No leads yet</h3>
+                    <p>Upload an Excel file to get started with lead management!</p>
+                </div>
+            {% endif %}
+        </div>
+        {% if leads %}
+            <div class="p-4 text-center" style="border-top: 1px solid #e2e8f0;">
+                <a href="{% url 'all_leads' %}" class="btn-action btn-action-outline">
+                    <i class="bi bi-list-ul"></i>
+                    View All Leads
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

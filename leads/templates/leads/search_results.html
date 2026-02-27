@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - Lead Matching System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+        .lead-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .lead-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .skill-badge {
+            background-color: #e7f3ff;
+            color: #0066cc;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+        .matched-skill {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: bold;
+        }
+        .keyword-matched {
+            background-color: #28a745;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+        .keyword-missing {
+            background-color: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-block;
+            text-decoration: line-through;
+        }
+        .keyword-partial {
+            background-color: #ffc107;
+            color: #000;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+        .match-score {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        .match-excellent {
+            color: #28a745;
+        }
+        .match-good {
+            color: #ffc107;
+        }
+        .match-low {
+            color: #dc3545;
+        }
+        .keyword-analysis {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+        }
+        .keyword-section {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .keyword-section h6 {
+            color: white;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .match-context {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+        .match-context strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="bi bi-people-fill"></i> Lead Matcher
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'all_leads' %}">All Leads</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'export_leads' %}">
+                            <i class="bi bi-download"></i> Export
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <!-- Keyword Analysis Section -->
+        <div class="keyword-analysis">
+            <h4 class="mb-3">
+                <i class="bi bi-bar-chart-fill"></i> Keyword Analysis
+            </h4>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="keyword-section">
+                        <h6><i class="bi bi-check-circle-fill"></i> Matched Keywords</h6>
+                        {% if keyword_stats.matched %}
+                            {% for keyword in keyword_stats.matched %}
+                                <span class="keyword-matched">
+                                    <i class="bi bi-check2"></i> {{ keyword.word }} 
+                                    <span class="badge bg-light text-dark">{{ keyword.count }}</span>
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <small class="text-white-50">No matched keywords</small>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="keyword-section">
+                        <h6><i class="bi bi-dash-circle-fill"></i> Partially Matched</h6>
+                        {% if keyword_stats.partial %}
+                            {% for keyword in keyword_stats.partial %}
+                                <span class="keyword-partial">
+                                    <i class="bi bi-exclamation-circle"></i> {{ keyword.word }}
+                                    <span class="badge bg-light text-dark">{{ keyword.count }}</span>
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <small class="text-white-50">None</small>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="keyword-section">
+                        <h6><i class="bi bi-x-circle-fill"></i> Missing Keywords</h6>
+                        {% if keyword_stats.missing %}
+                            {% for keyword in keyword_stats.missing %}
+                                <span class="keyword-missing">
+                                    <i class="bi bi-x"></i> {{ keyword }}
+                                </span>
+                            {% endfor %}
+                        {% else %}
+                            <small class="text-white-50">All keywords found!</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-3 text-center">
+                <small class="text-white-50">
+                    <i class="bi bi-info-circle"></i> 
+                    Search query: "{{ query }}" | 
+                    Total results: {{ leads|length }} | 
+                    Match rate: {{ keyword_stats.match_rate }}%
+                </small>
+            </div>
+        </div>
+
+        <!-- Search Form -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-search"></i> Search Criteria
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'search_leads' %}">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-9">
+                            <input type="text" name="skills" class="form-control" 
+                                   placeholder="Enter keywords (role, company, location, skills...)" 
+                                   value="{{ query }}">
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search"></i> Search Again
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <h2 class="mb-4">
+            <i class="bi bi-trophy"></i> Best Matches 
+            <span class="badge bg-primary">{{ leads|length }} Found</span>
+        </h2>
+
+        {% if leads %}
+            <div class="row">
+                {% for lead in leads %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card lead-card h-100">
+                            <div class="card-body">
+                                <div class="text-center mb-3">
+                                    <div class="match-score {% if lead.match_score >= 70 %}match-excellent{% elif lead.match_score >= 40 %}match-good{% else %}match-low{% endif %}">
+                                        {{ lead.match_score }}%
+                                    </div>
+                                    <small class="text-muted">Match Score</small>
+                                </div>
+                                
+                                <h5 class="card-title">{{ lead.name }}</h5>
+                                
+                                <div class="mb-2">
+                                    <i class="bi bi-envelope text-muted"></i>
+                                    <small>{{ lead.email }}</small>
+                                </div>
+                                
+                                {% if lead.phone %}
+                                    <div class="mb-2">
+                                        <i class="bi bi-telephone text-muted"></i>
+                                        <small>{{ lead.phone }}</small>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if lead.company %}
+                                    <div class="mb-2">
+                                        <i class="bi bi-building text-muted"></i>
+                                        <small>{{ lead.company }}</small>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if lead.role %}
+                                    <div class="mb-2">
+                                        <i class="bi bi-briefcase text-muted"></i>
+                                        <small>{{ lead.role }}</small>
+                                    </div>
+                                {% endif %}
+                                
+                                {% if lead.location %}
+                                    <div class="mb-2">
+                                        <i class="bi bi-geo-alt text-muted"></i>
+                                        <small>{{ lead.location }}</small>
+                                    </div>
+                                {% endif %}
+                                
+                                <hr>
+                                
+                                <!-- Match Context -->
+                                {% if lead.match_context %}
+                                <div class="match-context">
+                                    <strong>Why this matched:</strong>
+                                    <ul class="mb-0 mt-2" style="padding-left: 20px;">
+                                        {% for context in lead.match_context %}
+                                            <li>{{ context }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="mt-3">
+                                    <a href="{% url 'lead_detail' lead.pk %}" class="btn btn-outline-primary w-100">
+                                        <i class="bi bi-eye"></i> View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-search text-muted" style="font-size: 5rem;"></i>
+                    <h4 class="mt-3">No Matches Found</h4>
+                    <p class="text-muted">Try adjusting your search criteria or upload more leads.</p>
+                    <a href="{% url 'home' %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-house"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="text-center mt-4 mb-5">
+            <a href="{% url 'home' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> New Search
+            </a>
+            <a href="{% url 'export_leads' %}" class="btn btn-success">
+                <i class="bi bi-download"></i> Export All Leads
+            </a>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0">&copy; 2025 Lead Matching System. Built with Django.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

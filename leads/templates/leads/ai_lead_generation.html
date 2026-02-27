@@ -1,0 +1,307 @@
+{% extends 'leads/base.html' %}
+{% load static %}
+
+{% block title %}AI Lead Generation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ai-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 0;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .prompt-box {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .prompt-textarea {
+        width: 100%;
+        min-height: 150px;
+        padding: 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        resize: vertical;
+        transition: border-color 0.3s;
+    }
+    
+    .prompt-textarea:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .example-prompts {
+        margin-top: 2rem;
+    }
+    
+    .example-card {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .example-card:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #667eea;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        margin-top: 0.5rem;
+    }
+    
+    .submit-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .submit-btn:hover {
+        transform: scale(1.02);
+    }
+    
+    .info-box {
+        background: #e7f3ff;
+        border-left: 4px solid #2196F3;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 4px;
+    }
+    
+    /* Industry Distribution Styles - Compact Sidebar */
+    .industry-overview {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        margin-bottom: 1rem;
+    }
+    
+    .industry-overview h6 {
+        color: #333;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    
+    .industry-overview svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .industry-item {
+        margin-bottom: 0.75rem;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+    
+    .industry-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .industry-item:hover {
+        background: #e9ecef;
+    }
+    
+    .industry-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.3rem;
+    }
+    
+    .industry-name {
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.85rem;
+    }
+    
+    .industry-count {
+        color: #6c757d;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .industry-bar-container {
+        background: #e9ecef;
+        border-radius: 8px;
+        height: 6px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .industry-bar {
+        height: 100%;
+        border-radius: 8px;
+        transition: width 0.5s ease;
+    }
+    
+    .no-data-message {
+        text-align: center;
+        color: #6c757d;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 4px;
+        font-size: 0.85rem;
+    }
+    
+    .industry-color-1 { background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); }
+    .industry-color-2 { background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%); }
+    .industry-color-3 { background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%); }
+    .industry-color-4 { background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%); }
+    .industry-color-5 { background: linear-gradient(90deg, #fa709a 0%, #fee140 100%); }
+    .industry-color-6 { background: linear-gradient(90deg, #30cfd0 0%, #330867 100%); }
+    .industry-color-7 { background: linear-gradient(90deg, #a8edea 0%, #fed6e3 100%); }
+    .industry-color-8 { background: linear-gradient(90deg, #ff9a9e 0%, #fecfef 100%); }
+    .industry-color-9 { background: linear-gradient(90deg, #ffecd2 0%, #fcb69f 100%); }
+    .industry-color-10 { background: linear-gradient(90deg, #ff6e7f 0%, #bfe9ff 100%); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="ai-hero text-center">
+        <h1>🤖 AI-Powered Lead Generation</h1>
+        <p class="lead">Describe what you're looking for, and let AI find the perfect matches</p>
+        <a href="{% url 'prompt_builder' %}" class="btn btn-light btn-lg mt-2">
+            🎯 Need Help? Use Prompt Builder
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="prompt-box">
+                <h3>Tell us what you're looking for</h3>
+                <div class="info-box">
+                    <strong>💡 Tip:</strong> Be specific! Mention whether you need a supplier/vendor or a consumer/client, 
+                    the service or product, location preferences, and any specific requirements.
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <textarea 
+                        name="prompt" 
+                        class="prompt-textarea" 
+                        placeholder="Example: I'm looking for someone who supplies cloud infrastructure services to enterprise clients in the financial sector..."
+                        required>{{ user_prompt }}</textarea>
+                    
+                    <button type="submit" class="submit-btn">
+                        🔍 Find Best Matches
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Industry Distribution Overview - Compact Sidebar -->
+            {% if industry_stats %}
+            <div class="industry-overview">
+                <h6>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 3v18h18"></path>
+                        <path d="m19 9-5 5-4-4-3 3"></path>
+                    </svg>
+                    Top 5 Industries
+                </h6>
+                
+                {% for stat in industry_stats %}
+                <div class="industry-item">
+                    <div class="industry-header">
+                        <div class="industry-name">{{ stat.name }}</div>
+                        <div class="industry-count">{{ stat.count }}</div>
+                    </div>
+                    <div class="industry-bar-container">
+                        <div class="industry-bar industry-color-{{ forloop.counter }}" style="width: {{ stat.percentage }}%;"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="industry-overview">
+                <div class="no-data-message">
+                    No leads available yet.
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">How It Works</h5>
+                    <ol>
+                        <li class="mb-2">Describe your ideal lead in natural language</li>
+                        <li class="mb-2">AI analyzes your database and understands your intent</li>
+                        <li class="mb-2">Get ranked matches with confidence scores</li>
+                        <li class="mb-2">See detailed reasoning for each match</li>
+                    </ol>
+                    
+                    <hr>
+                    
+                    <h6>Confidence Score Breakdown:</h6>
+                    <ul class="small">
+                        <li><strong>Role Relevance:</strong> 40%</li>
+                        <li><strong>Industry Match:</strong> 30%</li>
+                        <li><strong>Skills Alignment:</strong> 20%</li>
+                        <li><strong>Location Match:</strong> 10%</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="stats-grid mt-3">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_leads }}</div>
+                    <div class="stat-label">Total Leads</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function fillPrompt(promptText) {
+    document.querySelector('.prompt-textarea').value = promptText;
+    document.querySelector('.prompt-textarea').focus();
+}
+</script>
+{% endblock %}

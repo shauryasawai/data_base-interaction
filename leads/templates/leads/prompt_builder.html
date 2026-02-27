@@ -1,0 +1,628 @@
+{% extends 'leads/base.html' %}
+{% load static %}
+
+{% block title %}Prompt Builder - AI Lead Generation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .builder-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2.5rem 0;
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    
+    .builder-container {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .step-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .step-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .step-number {
+        width: 35px;
+        height: 35px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    
+    .step-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .option-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+    
+    .option-checkbox {
+        display: none;
+    }
+    
+    .option-label {
+        display: block;
+        padding: 0.75rem 1rem;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+        font-weight: 500;
+    }
+    
+    .option-checkbox:checked + .option-label {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+        transform: scale(1.02);
+    }
+    
+    .option-label:hover {
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
+    
+    .custom-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 1rem;
+        margin-top: 0.5rem;
+        transition: border-color 0.3s;
+    }
+    
+    .custom-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .generated-prompt-box {
+        background: #e7f3ff;
+        border: 2px solid #2196F3;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .generated-prompt {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 6px;
+        min-height: 120px;
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #333;
+        white-space: pre-wrap;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-generate {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        flex: 1;
+    }
+    
+    .btn-generate:hover {
+        transform: scale(1.02);
+    }
+    
+    .btn-use-prompt {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s;
+        flex: 1;
+    }
+    
+    .btn-use-prompt:hover {
+        transform: scale(1.02);
+        background: #218838;
+    }
+    
+    .btn-copy {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .btn-copy:hover {
+        transform: scale(1.02);
+        background: #5a6268;
+    }
+    
+    .info-tip {
+        background: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 0.75rem;
+        margin-top: 1rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+    
+    .relationship-type-selector {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .relationship-type {
+        flex: 1;
+        padding: 1.5rem;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+    
+    .relationship-type:hover {
+        border-color: #667eea;
+    }
+    
+    .relationship-type.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+    }
+    
+    .relationship-type h5 {
+        margin-bottom: 0.5rem;
+    }
+    
+    .relationship-type p {
+        margin: 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="builder-hero text-center">
+        <h1>🎯 AI Prompt Builder</h1>
+        <p class="lead">Build your perfect search prompt step-by-step</p>
+    </div>
+    
+    <div class="builder-container">
+        <!-- Step 1: Relationship Type -->
+        <div class="step-section">
+            <div class="step-header">
+                <div class="step-number">1</div>
+                <h3 class="step-title">What are you looking for?</h3>
+            </div>
+            <div class="relationship-type-selector">
+                <div class="relationship-type" data-type="supplier" onclick="selectRelationType('supplier')">
+                    <h5>🏭 Supplier / Vendor</h5>
+                    <p>Someone who can provide products or services to you</p>
+                </div>
+                <div class="relationship-type" data-type="consumer" onclick="selectRelationType('consumer')">
+                    <h5>🛒 Consumer / Client</h5>
+                    <p>Someone who might buy your products or services</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 2: Industry Selection -->
+        <div class="step-section">
+            <div class="step-header">
+                <div class="step-number">2</div>
+                <h3 class="step-title">Select Primary Industry</h3>
+            </div>
+            <div class="option-grid">
+                <div>
+                    <input type="checkbox" id="tech" class="option-checkbox" value="Technology" onchange="updateSelection()">
+                    <label for="tech" class="option-label">💻 Technology</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="finance" class="option-checkbox" value="Finance" onchange="updateSelection()">
+                    <label for="finance" class="option-label">💰 Finance</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="healthcare" class="option-checkbox" value="Healthcare" onchange="updateSelection()">
+                    <label for="healthcare" class="option-label">🏥 Healthcare</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="manufacturing" class="option-checkbox" value="Manufacturing" onchange="updateSelection()">
+                    <label for="manufacturing" class="option-label">🏭 Manufacturing</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="retail" class="option-checkbox" value="Retail" onchange="updateSelection()">
+                    <label for="retail" class="option-label">🛍️ Retail</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="consulting" class="option-checkbox" value="Consulting" onchange="updateSelection()">
+                    <label for="consulting" class="option-label">📊 Consulting</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="realestate" class="option-checkbox" value="Real Estate" onchange="updateSelection()">
+                    <label for="realestate" class="option-label">🏢 Real Estate</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="education" class="option-checkbox" value="Education" onchange="updateSelection()">
+                    <label for="education" class="option-label">🎓 Education</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="energy" class="option-checkbox" value="Energy" onchange="updateSelection()">
+                    <label for="energy" class="option-label">⚡ Energy</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="telecom" class="option-checkbox" value="Telecommunications" onchange="updateSelection()">
+                    <label for="telecom" class="option-label">📡 Telecom</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="media" class="option-checkbox" value="Media & Marketing" onchange="updateSelection()">
+                    <label for="media" class="option-label">📺 Media</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="automotive" class="option-checkbox" value="Automotive" onchange="updateSelection()">
+                    <label for="automotive" class="option-label">🚗 Automotive</label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 3: Service/Product Type -->
+        <div class="step-section">
+            <div class="step-header">
+                <div class="step-number">3</div>
+                <h3 class="step-title">What service/product are you interested in?</h3>
+            </div>
+            <input 
+                type="text" 
+                id="serviceProduct" 
+                class="custom-input" 
+                placeholder="E.g., Cloud infrastructure, Marketing automation, Supply chain software, AI/ML solutions..."
+                onkeyup="updateSelection()">
+            <div class="info-tip">
+                💡 Be specific about the product or service. This helps in finding the right matches.
+            </div>
+        </div>
+        
+        <!-- Step 4: Target Role/Decision Maker -->
+        <div class="step-section">
+            <div class="step-header">
+                <div class="step-number">4</div>
+                <h3 class="step-title">Who do you want to connect with?</h3>
+            </div>
+            <div class="option-grid">
+                <div>
+                    <input type="checkbox" id="ceo" class="option-checkbox" value="CEO/Founder" onchange="updateSelection()">
+                    <label for="ceo" class="option-label">CEO/Founder</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="cto" class="option-checkbox" value="CTO/CIO" onchange="updateSelection()">
+                    <label for="cto" class="option-label">CTO/CIO</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="vp" class="option-checkbox" value="VP/Director" onchange="updateSelection()">
+                    <label for="vp" class="option-label">VP/Director</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="manager" class="option-checkbox" value="Manager" onchange="updateSelection()">
+                    <label for="manager" class="option-label">Manager</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="head" class="option-checkbox" value="Department Head" onchange="updateSelection()">
+                    <label for="head" class="option-label">Department Head</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="procurement" class="option-checkbox" value="Procurement" onchange="updateSelection()">
+                    <label for="procurement" class="option-label">Procurement</label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Step 5: Location Preferences -->
+        <div class="step-section">
+            <div class="step-header">
+                <div class="step-number">5</div>
+                <h3 class="step-title">Location Preferences (Optional)</h3>
+            </div>
+            <div class="option-grid">
+                <div>
+                    <input type="checkbox" id="northamerica" class="option-checkbox" value="North America" onchange="updateSelection()">
+                    <label for="northamerica" class="option-label">North America</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="europe" class="option-checkbox" value="Europe" onchange="updateSelection()">
+                    <label for="europe" class="option-label">Europe</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="asia" class="option-checkbox" value="Asia" onchange="updateSelection()">
+                    <label for="asia" class="option-label">Asia</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="india" class="option-checkbox" value="India" onchange="updateSelection()">
+                    <label for="india" class="option-label">India</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="uk" class="option-checkbox" value="United Kingdom" onchange="updateSelection()">
+                    <label for="uk" class="option-label">UK</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="usa" class="option-checkbox" value="United States" onchange="updateSelection()">
+                    <label for="usa" class="option-label">USA</label>
+                </div>
+            </div>
+            <input 
+                type="text" 
+                id="customLocation" 
+                class="custom-input" 
+                placeholder="Or enter specific location..."
+                onkeyup="updateSelection()">
+        </div>
+        
+        <!-- Step 6: Additional Requirements -->
+        <div class="step-section">
+            <div class="step-header">
+                <div class="step-number">6</div>
+                <h3 class="step-title">Additional Requirements (Optional)</h3>
+            </div>
+            <div class="option-grid">
+                <div>
+                    <input type="checkbox" id="enterprise" class="option-checkbox" value="Enterprise-level" onchange="updateSelection()">
+                    <label for="enterprise" class="option-label">Enterprise-level</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="startup" class="option-checkbox" value="Startup/SMB" onchange="updateSelection()">
+                    <label for="startup" class="option-label">Startup/SMB</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="b2b" class="option-checkbox" value="B2B focus" onchange="updateSelection()">
+                    <label for="b2b" class="option-label">B2B Focus</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="b2c" class="option-checkbox" value="B2C focus" onchange="updateSelection()">
+                    <label for="b2c" class="option-label">B2C Focus</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="experience" class="option-checkbox" value="5+ years experience" onchange="updateSelection()">
+                    <label for="experience" class="option-label">5+ years exp</label>
+                </div>
+                <div>
+                    <input type="checkbox" id="compliance" class="option-checkbox" value="Compliance certified" onchange="updateSelection()">
+                    <label for="compliance" class="option-label">Compliance certified</label>
+                </div>
+            </div>
+            <input 
+                type="text" 
+                id="customRequirements" 
+                class="custom-input" 
+                placeholder="Add any other specific requirements..."
+                onkeyup="updateSelection()">
+        </div>
+        
+        <!-- Generate Button -->
+        <div class="text-center">
+            <button class="btn-generate" onclick="generatePrompt()">
+                ✨ Generate Prompt
+            </button>
+        </div>
+    </div>
+    
+    <!-- Generated Prompt Display -->
+    <div class="generated-prompt-box" id="promptBox" style="display: none;">
+        <h4>📝 Your Generated Prompt</h4>
+        <div class="generated-prompt" id="generatedPrompt"></div>
+        <div class="action-buttons">
+            <button class="btn-copy" onclick="copyPrompt()">📋 Copy Prompt</button>
+            <button class="btn-use-prompt" onclick="usePrompt()">🚀 Use This Prompt</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedData = {
+    relationType: '',
+    industries: [],
+    roles: [],
+    locations: [],
+    requirements: [],
+    serviceProduct: '',
+    customLocation: '',
+    customRequirements: ''
+};
+
+function selectRelationType(type) {
+    selectedData.relationType = type;
+    
+    // Update UI
+    document.querySelectorAll('.relationship-type').forEach(el => {
+        el.classList.remove('active');
+    });
+    document.querySelector(`[data-type="${type}"]`).classList.add('active');
+    
+    updateSelection();
+}
+
+function updateSelection() {
+    // Get industries
+    selectedData.industries = [];
+    document.querySelectorAll('#tech, #finance, #healthcare, #manufacturing, #retail, #consulting, #realestate, #education, #energy, #telecom, #media, #automotive').forEach(cb => {
+        if (cb.checked) selectedData.industries.push(cb.value);
+    });
+    
+    // Get roles
+    selectedData.roles = [];
+    document.querySelectorAll('#ceo, #cto, #vp, #manager, #head, #procurement').forEach(cb => {
+        if (cb.checked) selectedData.roles.push(cb.value);
+    });
+    
+    // Get locations
+    selectedData.locations = [];
+    document.querySelectorAll('#northamerica, #europe, #asia, #india, #uk, #usa').forEach(cb => {
+        if (cb.checked) selectedData.locations.push(cb.value);
+    });
+    
+    // Get requirements
+    selectedData.requirements = [];
+    document.querySelectorAll('#enterprise, #startup, #b2b, #b2c, #experience, #compliance').forEach(cb => {
+        if (cb.checked) selectedData.requirements.push(cb.value);
+    });
+    
+    // Get custom inputs
+    selectedData.serviceProduct = document.getElementById('serviceProduct').value;
+    selectedData.customLocation = document.getElementById('customLocation').value;
+    selectedData.customRequirements = document.getElementById('customRequirements').value;
+}
+
+function generatePrompt() {
+    updateSelection();
+    
+    if (!selectedData.relationType) {
+        alert('Please select whether you are looking for a supplier or consumer');
+        return;
+    }
+    
+    if (selectedData.industries.length === 0) {
+        alert('Please select at least one industry');
+        return;
+    }
+    
+    let prompt = '';
+    
+    // Build the prompt based on relationship type
+    if (selectedData.relationType === 'supplier') {
+        prompt = "I'm looking for suppliers/vendors who can provide ";
+    } else {
+        prompt = "I'm looking for potential clients/consumers who would be interested in purchasing ";
+    }
+    
+    // Add service/product
+    if (selectedData.serviceProduct) {
+        prompt += selectedData.serviceProduct;
+    } else {
+        prompt += "products or services";
+    }
+    
+    // Add industry context
+    if (selectedData.industries.length > 0) {
+        prompt += " in the " + selectedData.industries.join(', ') + " sector";
+        if (selectedData.industries.length > 1) {
+            prompt = prompt.replace(/, ([^,]*)$/, ' and $1');
+        }
+    }
+    
+    prompt += ". ";
+    
+    // Add role/decision maker
+    if (selectedData.roles.length > 0) {
+        prompt += "Specifically looking for " + selectedData.roles.join(', ');
+        if (selectedData.roles.length > 1) {
+            prompt = prompt.replace(/, ([^,]*)$/, ' or $1');
+        }
+        prompt += " level contacts. ";
+    }
+    
+    // Add location
+    let allLocations = [...selectedData.locations];
+    if (selectedData.customLocation) {
+        allLocations.push(selectedData.customLocation);
+    }
+    if (allLocations.length > 0) {
+        prompt += "Preferably based in " + allLocations.join(', ');
+        if (allLocations.length > 1) {
+            prompt = prompt.replace(/, ([^,]*)$/, ' or $1');
+        }
+        prompt += ". ";
+    }
+    
+    // Add requirements
+    let allRequirements = [...selectedData.requirements];
+    if (selectedData.customRequirements) {
+        allRequirements.push(selectedData.customRequirements);
+    }
+    if (allRequirements.length > 0) {
+        prompt += "Additional requirements: " + allRequirements.join(', ') + ".";
+    }
+    
+    // Display the prompt
+    document.getElementById('generatedPrompt').textContent = prompt;
+    document.getElementById('promptBox').style.display = 'block';
+    
+    // Scroll to prompt
+    document.getElementById('promptBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function copyPrompt() {
+    const promptText = document.getElementById('generatedPrompt').textContent;
+    navigator.clipboard.writeText(promptText).then(() => {
+        alert('Prompt copied to clipboard!');
+    });
+}
+
+function usePrompt() {
+    const promptText = document.getElementById('generatedPrompt').textContent;
+    // Redirect to AI lead generation page with the prompt
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "ai_lead_generation" %}';
+    
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'csrfmiddlewaretoken';
+    csrfInput.value = '{{ csrf_token }}';
+    form.appendChild(csrfInput);
+    
+    const promptInput = document.createElement('input');
+    promptInput.type = 'hidden';
+    promptInput.name = 'prompt';
+    promptInput.value = promptText;
+    form.appendChild(promptInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+{% endblock %}
