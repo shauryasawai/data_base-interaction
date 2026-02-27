@@ -7,4 +7,4 @@ psycopg-binary==3.3.2
 python-decouple==3.8
 fuzzywuzzy==0.18.0
 dotenv
-psycopg2
+psycopg2-binary
