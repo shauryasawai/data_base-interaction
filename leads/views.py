@@ -42,9 +42,8 @@ def upload_leads(request):
     excel_file = request.FILES['file']
 
     try:
-        df = pd.read_excel(excel_file)
+        df = pd.read_excel(excel_file, engine='openpyxl')  # explicit engine is faster
 
-        # Column mapping from Excel to Lead model
         column_mapping = {
             'Name': 'name',
             'Linkedin Link': 'linkedin_url',
@@ -68,41 +67,34 @@ def upload_leads(request):
             'Original Sheet': 'original_sheet'
         }
 
-        # Rename columns
         df = df.rename(columns=column_mapping)
 
-        # Check if 'name' column exists after mapping
         if 'name' not in df.columns:
             messages.error(request, "Excel must contain a 'Name' column")
             return redirect('home')
 
-        imported = 0
-        updated = 0
+        def safe_str(value, default=''):
+            if pd.notna(value) and str(value).strip() and str(value).strip().lower() != 'nan':
+                return str(value).strip()
+            return default
+
+        # ── 1. Build cleaned rows in pure Python (no DB calls) ──────────────
+        rows = []
         skipped = 0
 
         for idx, row in df.iterrows():
-            # Get name - skip if empty
             name = str(row.get('name', '')).strip()
             if not name or name == 'nan':
                 skipped += 1
                 continue
 
-            # Get email - generate if missing
             email = row.get('email')
             if pd.notna(email) and str(email).strip() and str(email).strip().lower() != 'nan':
                 email = str(email).strip()
             else:
-                # Auto-generate email if missing
                 email = f"{name.lower().replace(' ', '.')}.{idx}@leads.local"
 
-            # Helper function to safely get string values
-            def safe_str(value, default=''):
-                if pd.notna(value) and str(value).strip() and str(value).strip().lower() != 'nan':
-                    return str(value).strip()
-                return default
-
-            # Prepare lead data with all mapped fields
-            lead_data = {
+            rows.append({
                 'name': name,
                 'email': email,
                 'phone': safe_str(row.get('phone')),
@@ -113,31 +105,53 @@ def upload_leads(request):
                 'skills': '',
                 'experience_years': 0,
                 'notes': safe_str(row.get('notes')),
-            }
+            })
 
-            # Create or update lead
-            lead, created = Lead.objects.update_or_create(
-                email=email,
-                defaults=lead_data
-            )
+        if not rows:
+            messages.warning(request, "No valid rows found in the file.")
+            return redirect('home')
 
-            if created:
-                imported += 1
+        # ── 2. Fetch all existing leads in ONE query ─────────────────────────
+        incoming_emails = {r['email'] for r in rows}
+        existing_leads = Lead.objects.filter(email__in=incoming_emails)
+        existing_map = {lead.email: lead for lead in existing_leads}
+
+        # ── 3. Split into creates vs updates ─────────────────────────────────
+        to_create = []
+        to_update = []
+
+        for data in rows:
+            if data['email'] in existing_map:
+                lead = existing_map[data['email']]
+                for field, value in data.items():
+                    setattr(lead, field, value)
+                to_update.append(lead)
             else:
-                updated += 1
+                to_create.append(Lead(**data))
 
-        # Create upload history record
+        # ── 4. Bulk DB operations (2 queries total instead of N) ──────────────
+        imported = updated = 0
+
+        if to_create:
+            Lead.objects.bulk_create(to_create, batch_size=500, ignore_conflicts=True)
+            imported = len(to_create)
+
+        if to_update:
+            update_fields = ['name', 'phone', 'role', 'company', 'linkedin_url',
+                             'location', 'skills', 'experience_years', 'notes']
+            Lead.objects.bulk_update(to_update, fields=update_fields, batch_size=500)
+            updated = len(to_update)
+
+        # ── 5. Upload history ─────────────────────────────────────────────────
         UploadHistory.objects.create(
             filename=excel_file.name,
             records_imported=imported,
             records_updated=updated
         )
 
-        # Success message
         message_parts = [f"Imported {imported} new leads, updated {updated} existing leads"]
-        if skipped > 0:
+        if skipped:
             message_parts.append(f"skipped {skipped} empty rows")
-        
         messages.success(request, ", ".join(message_parts))
 
     except Exception as e:
